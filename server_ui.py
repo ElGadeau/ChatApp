@@ -1,24 +1,61 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+import asyncio
+from threading import Thread
+
+import server as sv
 
 class ConnectionPage(ttk.Frame):
-	def __init__(self, parent, controller):
+	controller: Optional[object] = None
+
+	def __init__(self, parent, controller: object):
 		ttk.Frame.__init__(self, parent)
 		self.controller = controller
 
-		label = ttk.Label(self, text="this is the connection page")
-		label.pack()
-		
-		button = ttk.Button(self, text="page 2", command=lambda: controller.show_frame("DummyPage"))
-		button.pack()
+		self.grid_columnconfigure(0, weight=1)
+		self.grid_columnconfigure(3, weight=1)
+		self.grid_rowconfigure(0, weight=1)
+		self.grid_rowconfigure(5, weight=1)
 
-class DummyPage(ttk.Frame):
-	def __init__(self, parent, controller):
+		label = ttk.Label(self, text="Enter the IP and the PORT of the server")
+		label.grid(column=1, columnspan=2, row=1)
+
+		ip_label = ttk.Label(self, text="IP :")
+		ip_label.grid(column=1, row=2)
+
+		ip_entry = ttk.Entry(self)
+		ip_entry.grid(column=2, row=2)
+
+
+		port_label = ttk.Label(self, text="PORT :")
+		port_label.grid(column=1, row=3)
+
+		port_entry = ttk.Entry(self)
+		port_entry.grid(column=2, row=3)
+
+
+		button = ttk.Button(self, text="Create", command=lambda: self.submit_connection(ip_entry.get(), port_entry.get()))
+		button.grid(column=1, columnspan=2, row=4)
+
+	def submit_connection(self, ip, port):
+		print("info given :", ip, port)
+		sv.server.connection(str(ip), int(port))
+		self.controller.show_frame("TextPage")
+		TextPage.start_connection()
+
+
+class TextPage(ttk.Frame):
+	controller: Optional[object] = None
+
+	def __init__(self, parent, controller: object):
 		ttk.Frame.__init__(self, parent)
 		self.controller = controller
 
 		label = ttk.Label(self, text="this is the dummy page")
 		label.pack()
+
+	def start_connection():
+		Thread(target=sv.server.user_connect).start()
 
 class MainView(tk.Tk):
 	def __init__(self, *args, **kwargs):
@@ -33,9 +70,8 @@ class MainView(tk.Tk):
 		container.grid_columnconfigure(0, weight=1)
 
 		self.frames = {}
-		for F in (ConnectionPage, DummyPage):
+		for F in (ConnectionPage, TextPage):
 			page_name = F.__name__
-			print(page_name)
 			frame = F(parent=container, controller=self)
 			self.frames[page_name] = frame
 
