@@ -41,21 +41,39 @@ class ConnectionPage(ttk.Frame):
 		print("info given :", ip, port)
 		sv.server.connection(str(ip), int(port))
 		self.controller.show_frame("TextPage")
-		TextPage.start_connection()
+		self.controller.frames["TextPage"].start_connection()
 
 
 class TextPage(ttk.Frame):
 	controller: Optional[object] = None
+	text_box: Optional[tk.Text] = None
 
 	def __init__(self, parent, controller: object):
 		ttk.Frame.__init__(self, parent)
 		self.controller = controller
 
-		label = ttk.Label(self, text="this is the dummy page")
-		label.pack()
+		self.grid_columnconfigure(0, weight=1)
+		self.grid_columnconfigure(3, weight=1)
+		self.grid_rowconfigure(0, weight=1)
+		self.grid_rowconfigure(5, weight=1)
 
-	def start_connection():
+		label = ttk.Label(self, text="this is the dummy page")
+		label.grid(column=1, columnspan=2, row=1)
+
+		self.text_box = tk.Text(self, state="disabled")
+		self.text_box.grid(column=1, columnspan=2, row=2)
+
+	def start_connection(self):
 		Thread(target=sv.server.user_connect).start()
+		Thread(target=self.update_text).start()
+
+	def update_text(self):
+		while True:
+			message = sv.server.recieve_data()
+			if message != None:
+				print("message recieved:", message.decode())
+				self.text_box.insert(tk.END, message.decode())
+
 
 class MainView(tk.Tk):
 	def __init__(self, *args, **kwargs):

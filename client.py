@@ -15,4 +15,5 @@ s_stream.sendall(message.encode())
 data = s_stream.recv(10)
 print(data)
 
-s_stream.close()
+while True:
+	print("wait")
